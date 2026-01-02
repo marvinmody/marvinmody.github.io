@@ -22,15 +22,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
       
       - name: Get pnpm store directory
         shell: bash
@@ -50,9 +51,16 @@ jobs:
       
       - name: Build
         run: pnpm run build
+        continue-on-error: false
       
-      - name: List build output
-        run: ls -la out/ || echo "Build output not found"
+      - name: Verify build output
+        run: |
+          if [ ! -d "out" ]; then
+            echo "Error: out directory not found after build"
+            exit 1
+          fi
+          echo "Build output found:"
+          ls -la out/ | head -20
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
